@@ -1,24 +1,126 @@
-﻿using StarMap.API;
+﻿using Brutal.ImGuiApi;
+using HarmonyLib;
+using KSA;
+using StarMap.API;
+using System.Reflection;
 
 namespace Unit_Switching
 {
-    public class Unit_Switching : IStarMapMod
+    [StarMapMod]
+    public class Unit_Switching
     {
-        public bool ImmediateUnload => false;
+        private const string HarmonyId = "com.extendicator.starmap";
+        private readonly Harmony _harmony = new Harmony(HarmonyId);
+        private bool _showWindow = true;
+        private bool _showSettings = false;
+        private bool _uiDrawnThisFrame = false;
+        private double _lastKnownOrbitalSpeed = 0.0;
+        private double _lastKnownSurfaceSpeed = 0.0;
+        private double _lastKnownRadarAltitude = 0.0;
+        private double _lastKnownBarometricAltitude = 0.0;
+        private Vehicle? _controlledVehicle = null;
+        private Celestial? _nearbyCelestial = null;
 
-        public void OnImmediatLoad()
+        private static string CorrectDistanceUnits(double distance)
         {
-            
+            if (distance < 10000.0) 
+            {
+                return $"{distance:F0}m";
+            } 
+            else if (distance > 1000000000.0)
+            {
+                return $"{distance/1000000.0:F3}Mm";
+            }
+            else
+            {
+                return $"{distance/1000.0:F3}Km";
+            }
         }
-        
+
+        [StarMapAllModsLoaded]
         public void OnFullyLoaded()
         {
-            Console.WriteLine("Unit_Switching Has Loaded!");
+            try
+            {
+                _harmony.PatchAll(Assembly.GetExecutingAssembly());
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
+        [StarMapUnload]
         public void Unload()
         {
+            _harmony.UnpatchAll(HarmonyId);
+        }
+
+        [StarMapBeforeGui]
+        public void OnBeforeUi(double dt)
+        {
+            _uiDrawnThisFrame = false;
+        }
+
+        [StarMapAfterGui]
+        public void OnAfterUi(double dt)
+        {
+            if (_uiDrawnThisFrame) return;
+
+            DrawUi();
+            _uiDrawnThisFrame = true;
+        }
+
+        private void DrawUi()
+        {
+            if (!_showWindow) return;
+
+            _lastKnownOrbitalSpeed = GameData.CurrentOrbitalSpeed;
+            _lastKnownSurfaceSpeed = GameData.CurrentSurfaceSpeed;
+            _lastKnownRadarAltitude = GameData.CurrentRadarAltitude;
+            _lastKnownBarometricAltitude = GameData.CurrentBarometricAltitude;
+            _controlledVehicle = GameData.ControlledVehicle;
+            _nearbyCelestial = GameData.NearbyCelestial;
+
+            ImGuiWindowFlags flags = ImGuiWindowFlags.None;
+            ImGui.Begin("Extendicator", ref _showWindow, flags);
+
+            if (ImGui.BeginMenuBar())
+            {
+                if (ImGui.MenuItem("Settings"))
+                    _showSettings = !_showSettings;
+                ImGui.EndMenuBar();
+            }
             
+            ImGui.TextWrapped("Original mod made by BarneyTheGod. Extended by MrJeranimo");
+
+            ImGui.Separator();
+            ImGui.Text($"Current Vehicle: {_controlledVehicle}");
+            ImGui.Text($"Nearest Celestial: {_nearbyCelestial}");
+            ImGui.Separator();
+            ImGui.Text($"Orbital Speed: {_lastKnownOrbitalSpeed:F2}m/s");
+            ImGui.Text($"Surface Speed: {_lastKnownSurfaceSpeed:F2}m/s");
+            ImGui.Text($"Speed Difference (O-S): {_lastKnownOrbitalSpeed-_lastKnownSurfaceSpeed:F2}m/s");
+            ImGui.Separator();
+            String correctRadarA = CorrectDistanceUnits(_lastKnownRadarAltitude);
+            ImGui.Text($"Radar Altitude (Ground): {correctRadarA}");
+            String correctBarometricA = CorrectDistanceUnits(_lastKnownBarometricAltitude);
+            ImGui.Text($"Barometric Altitude (Sea Level): {correctBarometricA}");
+            String correctDifferenceA = CorrectDistanceUnits(_lastKnownBarometricAltitude-_lastKnownRadarAltitude);
+            ImGui.Text($"Altitude Difference (B-R): {correctDifferenceA}");
+
+            if (_showSettings)
+            {
+                ImGui.Separator();
+                ImGui.Text("Soon.");
+            }
+
+            ImGui.End();
+        }
+
+        [StarMapImmediateLoad]
+        public void OnImmediatLoad()
+        {
         }
     }
 }

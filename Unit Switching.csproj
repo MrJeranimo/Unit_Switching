@@ -5,29 +5,47 @@
     <RootNamespace>Unit_Switching</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
-    <PackageReference Include="StarMap.API" Version="0.1.5" />
+	<PackageReference Include="Lib.Harmony" Version="2.4.2">
+		<PrivateAssets>all</PrivateAssets>
+	</PackageReference>
+	  <PackageReference Include="StarMap.API" Version="0.2.1">
+		  <PrivateAssets>all</PrivateAssets>
+	  </PackageReference>
   </ItemGroup>
+
+	
 
   <ItemGroup>
     <Reference Include="Brutal.Core.Numerics">
-      <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Numerics.dll</HintPath>
+        <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Numerics.dll</HintPath>
+	    <Private>false</Private>
     </Reference>
     <Reference Include="Brutal.Glfw">
       <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Glfw.dll</HintPath>
+		<Private>false</Private>
     </Reference>
     <Reference Include="Brutal.ImGui">
       <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.dll</HintPath>
+		<Private>false</Private>
     </Reference>
     <Reference Include="Brutal.ImGui.Extensions">
       <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.Extensions.dll</HintPath>
+		<Private>false</Private>
     </Reference>
-    <Reference Include="KSA">
+    <Reference Include="KSA_NOT">
       <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\KSA.dll</HintPath>
+		<Private>false</Private>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="mod.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
