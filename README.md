@@ -6,7 +6,7 @@ The Source code is more useful than the debug as it shows you how to access Clas
 
 Known Bugs: If you close the window, there is no way to get it back besides restarting the game.
 
-# Installation
+## Installation
 
 If you install the Release, just make sure to add
 
