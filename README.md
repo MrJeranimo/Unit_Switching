@@ -4,6 +4,10 @@ This is just a temporary KSA debug panel made by MrJeranimo. The original code w
 
 The Source code is more useful than the debug as it shows you how to access Classes and Properties like all the Celestials in the system and their ID (name).
 
+Known Bugs: If you close the window, there is no way to get it back besides restarting the game.
+
+# Installation
+
 If you install the Release, just make sure to add
 
 ```
