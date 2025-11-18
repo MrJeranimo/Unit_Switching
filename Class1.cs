@@ -2,9 +2,10 @@
 using HarmonyLib;
 using KSA;
 using StarMap.API;
+using System.Diagnostics;
 using System.Reflection;
 
-namespace Unit_Switching
+namespace TempDebug
 {
     [StarMapMod]
     public class Unit_Switching
@@ -20,9 +21,15 @@ namespace Unit_Switching
         private double _lastKnownBarometricAltitude = 0.0;
         private Vehicle? _controlledVehicle = null;
         private Celestial? _nearbyCelestial = null;
+        private int _numCelestialsRendered = 0;
+        private CelestialSystem? _celestialSystem = null;
+        private Dictionary<Celestial, int>.ValueCollection? _celestials = null;
+        private List<Astronomical>? _astronomicals = null;
 
         private static string CorrectDistanceUnits(double distance)
         {
+            // Creates a string with the correct units based on distance
+            // Units {m, Km, Mm}
             if (distance < 10000.0) 
             {
                 return $"{distance:F0}m";
@@ -40,6 +47,7 @@ namespace Unit_Switching
         [StarMapAllModsLoaded]
         public void OnFullyLoaded()
         {
+            // No Clue Either, Just Works.
             try
             {
                 _harmony.PatchAll(Assembly.GetExecutingAssembly());
@@ -53,6 +61,7 @@ namespace Unit_Switching
         [StarMapUnload]
         public void Unload()
         {
+            // Similar to Above
             _harmony.UnpatchAll(HarmonyId);
         }
 
@@ -75,15 +84,26 @@ namespace Unit_Switching
         {
             if (!_showWindow) return;
 
+            // Update relevant data each UI frame
             _lastKnownOrbitalSpeed = GameData.CurrentOrbitalSpeed;
             _lastKnownSurfaceSpeed = GameData.CurrentSurfaceSpeed;
             _lastKnownRadarAltitude = GameData.CurrentRadarAltitude;
             _lastKnownBarometricAltitude = GameData.CurrentBarometricAltitude;
             _controlledVehicle = GameData.ControlledVehicle;
             _nearbyCelestial = GameData.NearbyCelestial;
+            _numCelestialsRendered = GameData.NumCelestialsRendered;
+            _celestialSystem = GameData.curCelestialSystem;
+            _celestials = GameData.allCelestials;
+
+            if (_celestialSystem != null)
+            {
+                // Gets a list of astronomicals in the system
+                // This includes Vehicles
+                _astronomicals = _celestialSystem.All.GetList();
+            }
 
             ImGuiWindowFlags flags = ImGuiWindowFlags.None;
-            ImGui.Begin("Extendicator", ref _showWindow, flags);
+            ImGui.Begin("TempDebug", ref _showWindow, flags);
 
             if (ImGui.BeginMenuBar())
             {
@@ -95,8 +115,15 @@ namespace Unit_Switching
             ImGui.TextWrapped("Original mod made by BarneyTheGod. Extended by MrJeranimo");
 
             ImGui.Separator();
-            ImGui.Text($"Current Vehicle: {_controlledVehicle}");
-            ImGui.Text($"Nearest Celestial: {_nearbyCelestial}");
+            if(_controlledVehicle != null)
+            {
+                ImGui.Text($"Current Vehicle: {_controlledVehicle.Id}");
+            }
+            if (_nearbyCelestial != null)
+            {
+                ImGui.Text($"Nearest Celestial: {_nearbyCelestial.Id}");
+            }
+            ImGui.Text($"Number of Celestials in Universe: {_numCelestialsRendered}");
             ImGui.Separator();
             ImGui.Text($"Orbital Speed: {_lastKnownOrbitalSpeed:F2}m/s");
             ImGui.Text($"Surface Speed: {_lastKnownSurfaceSpeed:F2}m/s");
@@ -108,6 +135,34 @@ namespace Unit_Switching
             ImGui.Text($"Barometric Altitude (Sea Level): {correctBarometricA}");
             String correctDifferenceA = CorrectDistanceUnits(_lastKnownBarometricAltitude-_lastKnownRadarAltitude);
             ImGui.Text($"Altitude Difference (B-R): {correctDifferenceA}");
+
+            if(_astronomicals != null)
+            {
+                foreach(var astro in _astronomicals)
+                {
+                    // Prints out each Astronomicals ID (Name)
+                    ImGui.Text($"Astronomical: {astro.Id}");
+                }
+            } 
+            else
+            {
+                Console.WriteLine("Astronomicals is null");
+            }
+
+            if (_celestials != null)
+            {
+                foreach (var cel in _celestials)
+                {
+                    ImGui.Text($"Celestial: {cel}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Celestials is null");
+            }
+
+
+
 
             if (_showSettings)
             {
@@ -121,6 +176,7 @@ namespace Unit_Switching
         [StarMapImmediateLoad]
         public void OnImmediatLoad()
         {
+            Console.WriteLine("TempDebug loaded!");
         }
     }
 }
